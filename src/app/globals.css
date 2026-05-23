@@ -13,7 +13,7 @@
   --font-sans:
     "General Sans", "Switzer", system-ui, sans-serif;
   --font-mono:
-    "JetBrains Mono Variable", "Menlo", monospace;
+    "JetBrains Mono", "Menlo", monospace;
 
   /* Type scale ------------------------------------------------ */
   --text-display-1: 72px;
