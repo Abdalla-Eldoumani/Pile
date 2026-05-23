@@ -2,9 +2,13 @@
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
+import type { ActionCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { generateScript } from "../src/lib/ai/script";
+import { synthesizeLine } from "../src/lib/tts/elevenlabs";
+import { stitchAudio } from "../src/lib/tts/stitch";
+import { computeWaveform } from "../src/lib/tts/waveform";
 
 /**
  * The episode generation action. Lives in its own "use node" file because the
@@ -101,6 +105,10 @@ export const generateEpisode = action({
         title: cappedItems[0].title,
         lines,
       });
+
+      // Continue straight into audio: scripted -> rendering -> ready. The
+      // subscribed UI animates through each status as it lands.
+      await renderEpisode(ctx, episodeId);
       return episodeId;
     } catch (err) {
       const message =
@@ -114,3 +122,80 @@ export const generateEpisode = action({
     }
   },
 });
+
+/**
+ * Render (or re-render) a scripted episode's audio. Public so the UI can offer
+ * a retry on a failed render. Re-render is safe: saveAudio clears prior timing
+ * marks before writing the new ones.
+ */
+export const renderEpisodeAudio = action({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }): Promise<void> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated.");
+    await renderEpisode(ctx, episodeId);
+  },
+});
+
+async function renderEpisode(
+  ctx: ActionCtx,
+  episodeId: Id<"episodes">,
+): Promise<void> {
+  try {
+    await ctx.runMutation(internal.episodes.setRendering, { episodeId });
+
+    const lines = await ctx.runQuery(
+      internal.episodes.linesForEpisodeInternal,
+      { episodeId },
+    );
+    if (lines.length === 0) throw new Error("No script to render.");
+
+    const perLine: Array<{
+      lineId: string;
+      audioBytes: Uint8Array;
+      durationMs: number;
+    }> = [];
+    const charTimings: Array<{ startMs: number; endMs: number }> = [];
+    let cursor = 0;
+
+    // Sequential to stay under ElevenLabs rate limits.
+    for (const line of lines) {
+      const r = await synthesizeLine(line.text, line.speaker);
+      perLine.push({
+        lineId: line._id,
+        audioBytes: r.audioBytes,
+        durationMs: r.durationMs,
+      });
+      for (const ct of r.charTimings) {
+        charTimings.push({
+          startMs: cursor + ct.startMs,
+          endMs: cursor + ct.endMs,
+        });
+      }
+      cursor += r.durationMs;
+    }
+
+    const stitched = stitchAudio(perLine);
+    const waveform = computeWaveform(charTimings, stitched.totalDurationMs);
+    const audioFileId = await ctx.storage.store(
+      new Blob([stitched.audioBytes], { type: "audio/mpeg" }),
+    );
+
+    await ctx.runMutation(internal.episodes.saveAudio, {
+      episodeId,
+      audioFileId,
+      durationMs: stitched.totalDurationMs,
+      waveform,
+      marks: stitched.timingMarks.map((m) => ({
+        lineId: m.lineId as Id<"dialogueLines">,
+        startMs: m.startMs,
+        endMs: m.endMs,
+      })),
+    });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Audio render failed.";
+    console.error("renderEpisodeAudio failed:", message);
+    await ctx.runMutation(internal.episodes.markFailed, { episodeId, message });
+  }
+}

@@ -140,3 +140,77 @@ export const markFailed = internalMutation({
     await ctx.db.patch(episodeId, { status: "failed", errorMessage: message });
   },
 });
+
+// --- Audio render (Phase 5) ---
+
+export const linesForEpisodeInternal = internalQuery({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }): Promise<Doc<"dialogueLines">[]> => {
+    // by_episode is [episodeId, index], so this returns lines in order.
+    return await ctx.db
+      .query("dialogueLines")
+      .withIndex("by_episode", (q) => q.eq("episodeId", episodeId))
+      .collect();
+  },
+});
+
+export const setRendering = internalMutation({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }): Promise<void> => {
+    await ctx.db.patch(episodeId, { status: "rendering" });
+  },
+});
+
+export const saveAudio = internalMutation({
+  args: {
+    episodeId: v.id("episodes"),
+    audioFileId: v.id("_storage"),
+    durationMs: v.number(),
+    waveform: v.array(v.number()),
+    marks: v.array(
+      v.object({
+        lineId: v.id("dialogueLines"),
+        startMs: v.number(),
+        endMs: v.number(),
+      }),
+    ),
+  },
+  handler: async (
+    ctx,
+    { episodeId, audioFileId, durationMs, waveform, marks },
+  ): Promise<void> => {
+    // Clear any marks from a previous render so a retry doesn't duplicate them.
+    const existing = await ctx.db
+      .query("timingMarks")
+      .withIndex("by_episode", (q) => q.eq("episodeId", episodeId))
+      .collect();
+    for (const e of existing) await ctx.db.delete(e._id);
+
+    for (const m of marks) {
+      await ctx.db.insert("timingMarks", {
+        episodeId,
+        lineId: m.lineId,
+        startMs: m.startMs,
+        endMs: m.endMs,
+      });
+    }
+    await ctx.db.patch(episodeId, {
+      status: "ready",
+      audioFileId,
+      durationMs,
+      waveform,
+    });
+  },
+});
+
+/** The playable audio URL for the player. Null until the episode is ready. */
+export const audioUrl = query({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const ep = await ctx.db.get(episodeId);
+    if (!ep || !ep.audioFileId) return null;
+    return await ctx.storage.getUrl(ep.audioFileId);
+  },
+});
