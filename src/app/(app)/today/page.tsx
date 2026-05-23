@@ -1,6 +1,8 @@
 // Implements T8.4 in TASKS.md.
 // Subscribes to today's Episode document; renders generation progress as it streams.
 
+import { AuthBridgeStatus } from "@/components/AuthBridgeStatus";
+
 export default function TodayPage() {
   return (
     <div className="max-w-[1280px] mx-auto px-6 md:px-10 py-10 md:py-16">
@@ -38,6 +40,7 @@ export default function TodayPage() {
         <p style={{ color: "var(--color-ink-secondary)" }}>
           Add at least two items to your Pile to generate today{`'`}s episode.
         </p>
+        <AuthBridgeStatus />
       </div>
     </div>
   );
