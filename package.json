@@ -13,13 +13,13 @@
   },
   "dependencies": {
     "next": "16.2.6",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.1.4",
+    "react-dom": "19.1.4",
     "@clerk/nextjs": "7.3.7",
     "convex": "1.39.1",
     "@anthropic-ai/sdk": "0.98.0",
     "@elevenlabs/elevenlabs-js": "2.47.0",
-    "pdfjs-dist": "5.4.196",
+    "pdfjs-dist": "5.7.284",
     "youtube-transcript": "1.2.1",
     "chrono-node": "2.9.0",
     "ics": "3.8.1",
@@ -44,8 +44,8 @@
     "autoprefixer": "10.4.20",
     "eslint": "9.18.0",
     "eslint-config-next": "16.2.6",
-    "@fontsource/jetbrains-mono": "5.1.2",
-    "@fontsource-variable/fraunces": "5.1.2"
+    "@fontsource/jetbrains-mono": "5.2.8",
+    "@fontsource-variable/fraunces": "5.2.9"
   },
   "engines": {
     "node": ">=20.0.0"
