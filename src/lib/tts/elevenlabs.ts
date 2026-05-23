@@ -12,7 +12,6 @@
  * See PRE_FLIGHT.md step 6 for how to pick them.
  */
 
-import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 import type { Speaker } from "@/lib/types";
 
 export interface LineSynthesisResult {
@@ -35,11 +34,15 @@ export async function synthesizeLine(
     );
   }
 
-  const client = new ElevenLabsClient({
-    apiKey: process.env.ELEVENLABS_API_KEY,
-  });
-
   // TODO(T5.1):
+  //
+  // Construct the client at implementation time. NOTE: in 2.47.0 the package
+  // root types do not surface the `ElevenLabsClient` class (its `export *`
+  // from the wrapper is dropped under moduleResolution: "bundler"), even
+  // though it exists at runtime. Import it from the wrapper subpath, or
+  // verify the current import via context7 before wiring this up:
+  //   import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+  //   const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY });
   //
   // Use the convertWithTimestamps method (or convert + with_timestamps=true).
   // The SDK API surface for v2.47 returns an object that includes audio bytes
@@ -61,7 +64,7 @@ export async function synthesizeLine(
   //   })),
   //   durationMs: last endMs in the array,
   // };
-  void client;
   void text;
+  void voiceId;
   throw new Error("synthesizeLine not implemented; see T5.1 in TASKS.md");
 }
