@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { userId } = await auth();
+  const signedIn = userId !== null;
+
   return (
     <div className="min-h-screen bg-bg">
       {/* Top nav */}
@@ -17,23 +21,24 @@ export default function LandingPage() {
           Pile
         </Link>
         <div className="flex items-center gap-4">
-          <SignedOut>
+          {signedIn ? (
+            <>
+              <Link
+                href="/library"
+                className="px-4 py-2 text-[15px] rounded-md bg-accent text-bg font-medium hover:brightness-110 transition-all"
+                style={{ background: "var(--color-accent)", color: "var(--color-bg)" }}
+              >
+                Open Pile
+              </Link>
+              <UserButton />
+            </>
+          ) : (
             <SignInButton mode="modal">
               <button className="px-4 py-2 text-[15px] rounded-md hover:bg-surface-2 transition-colors">
                 Sign in
               </button>
             </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            <Link
-              href="/library"
-              className="px-4 py-2 text-[15px] rounded-md bg-accent text-bg font-medium hover:brightness-110 transition-all"
-              style={{ background: "var(--color-accent)", color: "var(--color-bg)" }}
-            >
-              Open Pile
-            </Link>
-            <UserButton />
-          </SignedIn>
+          )}
         </div>
       </nav>
 
@@ -68,7 +73,19 @@ export default function LandingPage() {
         </p>
 
         <div className="mt-12 flex items-center gap-4">
-          <SignedOut>
+          {signedIn ? (
+            <Link
+              href="/library"
+              className="px-6 py-3 rounded-md font-medium text-[15px] transition-all hover:brightness-110"
+              style={{
+                background: "var(--color-accent)",
+                color: "var(--color-bg)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              Open your library
+            </Link>
+          ) : (
             <SignInButton mode="modal">
               <button
                 className="px-6 py-3 rounded-md font-medium text-[15px] transition-all hover:brightness-110"
@@ -81,20 +98,7 @@ export default function LandingPage() {
                 Start your Pile
               </button>
             </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            <Link
-              href="/library"
-              className="px-6 py-3 rounded-md font-medium text-[15px] transition-all hover:brightness-110"
-              style={{
-                background: "var(--color-accent)",
-                color: "var(--color-bg)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              Open your library
-            </Link>
-          </SignedIn>
+          )}
           <Link
             href="#how"
             className="px-6 py-3 rounded-md text-[15px] hover:bg-surface-2 transition-colors"
