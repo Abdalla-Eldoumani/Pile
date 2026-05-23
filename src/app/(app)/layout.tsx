@@ -3,10 +3,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { SidebarNav } from "@/components/SidebarNav";
 import { MobileNav } from "@/components/MobileNav";
+import { EnsureUser } from "@/components/EnsureUser";
 
 export default function AppShellLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex bg-bg">
+      <EnsureUser />
       {/* Desktop sidebar */}
       <aside
         className="hidden md:flex flex-col w-[240px] shrink-0 px-4 py-6"
