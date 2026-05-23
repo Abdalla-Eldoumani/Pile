@@ -9,6 +9,7 @@
  */
 
 import type * as episodes from "../episodes.js";
+import type * as generate from "../generate.js";
 import type * as http from "../http.js";
 import type * as items from "../items.js";
 import type * as reminders from "../reminders.js";
@@ -22,6 +23,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   episodes: typeof episodes;
+  generate: typeof generate;
   http: typeof http;
   items: typeof items;
   reminders: typeof reminders;

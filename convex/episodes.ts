@@ -1,13 +1,14 @@
 import { v } from "convex/values";
-import { action, query } from "./_generated/server";
+import { internalMutation, internalQuery, query } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
 
 /**
- * Episodes: the generation pipeline.
+ * Episodes: queries and the data-write half of the generation pipeline.
  *
- * Implements T4.3 (script) + T5.5 (audio) in TASKS.md.
- *
- * generateEpisode runs as an ACTION. It is allowed to be slow (30 to 90s).
- * The UI subscribes via useQuery(byId) and watches the status field.
+ * The generateEpisode ACTION lives in convex/generate.ts ("use node"): the
+ * Anthropic SDK needs the Node runtime, which cannot share a file with queries
+ * or mutations. That action calls the internal functions below to create the
+ * row, load source, and save the script. Audio (T5.5) is Phase 5.
  */
 
 export const byId = query({
@@ -17,7 +18,6 @@ export const byId = query({
     if (!identity) return null;
     const ep = await ctx.db.get(episodeId);
     if (!ep) return null;
-    // Verify ownership.
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
@@ -49,22 +49,94 @@ export const timingForEpisode = query({
   },
 });
 
-export const generateEpisode = action({
-  args: {
-    itemIds: v.array(v.id("items")),
+export const createPending = internalMutation({
+  args: { itemIds: v.array(v.id("items")) },
+  handler: async (ctx, { itemIds }): Promise<Id<"episodes">> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated.");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .unique();
+    if (!user) throw new Error("User row missing; sign in again.");
+    return await ctx.db.insert("episodes", {
+      userId: user._id,
+      status: "generating",
+      itemIds,
+      createdAt: Date.now(),
+    });
   },
-  handler: async (_ctx, _args) => {
-    // TODO(T4.3 + T5.5):
-    //
-    // 1. ensureUser, validate the items belong to that user
-    // 2. create an episodes row with status='generating'
-    // 3. load all chunks for those items
-    // 4. call generateScript() from src/lib/ai/script.ts
-    // 5. write dialogueLines (status -> 'scripted')
-    // 6. for each line, call synthesizeLine() (mark 'rendering')
-    // 7. stitchAudio, computeWaveform, write the audio blob + timingMarks
-    // 8. flip status -> 'ready'
-    // 9. on any failure, set status='failed' with errorMessage; do not throw
-    throw new Error("generateEpisode not implemented; see T4.3 + T5.5 in TASKS.md");
+});
+
+export const loadItemsAndChunks = internalQuery({
+  args: { itemIds: v.array(v.id("items")) },
+  handler: async (
+    ctx,
+    { itemIds },
+  ): Promise<{ items: Doc<"items">[]; chunks: Doc<"chunks">[] }> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated.");
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .unique();
+    if (!user) throw new Error("User row missing; sign in again.");
+
+    const items: Doc<"items">[] = [];
+    const chunks: Doc<"chunks">[] = [];
+    for (const id of itemIds) {
+      const item = await ctx.db.get(id);
+      if (!item || item.userId !== user._id) continue; // ownership filter
+      items.push(item);
+      const itemChunks = await ctx.db
+        .query("chunks")
+        .withIndex("by_item", (q) => q.eq("itemId", id))
+        .collect();
+      chunks.push(...itemChunks);
+    }
+    return { items, chunks };
+  },
+});
+
+export const saveScript = internalMutation({
+  args: {
+    episodeId: v.id("episodes"),
+    title: v.string(),
+    lines: v.array(
+      v.object({
+        index: v.number(),
+        speaker: v.union(v.literal("vega"), v.literal("theo")),
+        text: v.string(),
+        citationItemId: v.optional(v.id("items")),
+        citationChunkId: v.optional(v.id("chunks")),
+      }),
+    ),
+  },
+  handler: async (ctx, { episodeId, title, lines }): Promise<void> => {
+    const ep = await ctx.db.get(episodeId);
+    if (!ep) return;
+    for (const ln of lines) {
+      await ctx.db.insert("dialogueLines", {
+        episodeId,
+        userId: ep.userId,
+        index: ln.index,
+        speaker: ln.speaker,
+        text: ln.text,
+        ...(ln.citationItemId !== undefined
+          ? { citationItemId: ln.citationItemId }
+          : {}),
+        ...(ln.citationChunkId !== undefined
+          ? { citationChunkId: ln.citationChunkId }
+          : {}),
+      });
+    }
+    await ctx.db.patch(episodeId, { status: "scripted", title });
+  },
+});
+
+export const markFailed = internalMutation({
+  args: { episodeId: v.id("episodes"), message: v.string() },
+  handler: async (ctx, { episodeId, message }): Promise<void> => {
+    await ctx.db.patch(episodeId, { status: "failed", errorMessage: message });
   },
 });
