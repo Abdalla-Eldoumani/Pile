@@ -21,7 +21,7 @@ export default function AppShellLayout({ children }: { children: ReactNode }) {
         </Link>
         <SidebarNav />
         <div className="mt-auto px-2 flex items-center gap-3">
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         </div>
       </aside>
 
