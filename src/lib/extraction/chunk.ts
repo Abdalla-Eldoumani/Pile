@@ -21,7 +21,6 @@ export interface ChunkOptions {
 export function chunkText(text: string, opts: ChunkOptions): Chunk[] {
   const targetChars = (opts.targetTokens ?? 600) * CHARS_PER_TOKEN_APPROX;
   const overlapChars = (opts.overlapTokens ?? 50) * CHARS_PER_TOKEN_APPROX;
-  const step = Math.max(1, targetChars - overlapChars);
 
   const chunks: Chunk[] = [];
   let i = 0;
@@ -57,7 +56,9 @@ export function chunkText(text: string, opts: ChunkOptions): Chunk[] {
     }
 
     if (end >= text.length) break;
-    i += step;
+    // Advance relative to where this chunk actually ended (which the sentence
+    // break may have shortened), so the overlap holds and no text is skipped.
+    i = Math.max(i + 1, end - overlapChars);
   }
 
   return chunks;
