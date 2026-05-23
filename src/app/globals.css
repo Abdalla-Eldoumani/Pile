@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Pile: design tokens
+   Source of truth: .agent/DESIGN_SYSTEM.md
+   Tailwind v4: CSS-first config via @theme.
+   ============================================================ */
+
+@theme {
+  /* Fonts ------------------------------------------------------ */
+  --font-display:
+    "Fraunces Variable", "Cardo", "Times New Roman", serif;
+  --font-sans:
+    "General Sans", "Switzer", system-ui, sans-serif;
+  --font-mono:
+    "JetBrains Mono Variable", "Menlo", monospace;
+
+  /* Type scale ------------------------------------------------ */
+  --text-display-1: 72px;
+  --text-display-1--line-height: 1.04;
+  --text-display-2: 56px;
+  --text-display-2--line-height: 1.06;
+  --text-display-3: 44px;
+  --text-display-3--line-height: 1.08;
+  --text-h1: 36px;
+  --text-h1--line-height: 1.15;
+  --text-h2: 28px;
+  --text-h2--line-height: 1.20;
+  --text-h3: 22px;
+  --text-h3--line-height: 1.30;
+  --text-h4: 18px;
+  --text-h4--line-height: 1.35;
+  --text-body-lg: 17px;
+  --text-body-lg--line-height: 1.55;
+  --text-body: 15px;
+  --text-body--line-height: 1.55;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 1.50;
+  --text-caption: 12px;
+  --text-caption--line-height: 1.40;
+  --text-overline: 11px;
+  --text-overline--line-height: 1.20;
+  --text-mono-sm: 13px;
+  --text-mono-sm--line-height: 1.45;
+
+  /* Color tokens (dark, default) ------------------------------ */
+  --color-bg: #0A0A0B;
+  --color-surface-1: #131316;
+  --color-surface-2: #1B1B20;
+  --color-surface-3: #24242A;
+
+  --color-ink-primary: #F2F2EE;
+  --color-ink-secondary: #B5B5AD;
+  --color-ink-muted: #6E6E68;
+  --color-ink-faint: #4A4A45;
+
+  --color-border-subtle: #26262A;
+  --color-border-strong: #383840;
+  --color-border-accent: rgba(232, 163, 61, 0.4);
+
+  --color-accent: #E8A33D;
+  --color-accent-soft: rgba(232, 163, 61, 0.12);
+  --color-accent-glow: rgba(232, 163, 61, 0.25);
+
+  --color-success: #4ADE80;
+  --color-danger: #F87171;
+  --color-info: #60A5FA;
+
+  /* Spacing scale (4px base) --------------------------------- */
+  --spacing-0_5: 2px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-14: 56px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  --spacing-32: 128px;
+
+  /* Radius ---------------------------------------------------- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+
+  /* Motion ---------------------------------------------------- */
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Light theme overrides ------------------------------------- */
+:root[data-theme="light"] {
+  --color-bg: #FAF7F2;
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #F3EFE7;
+  --color-surface-3: #E8E2D5;
+
+  --color-ink-primary: #14140F;
+  --color-ink-secondary: #4A4A40;
+  --color-ink-muted: #7A7A6E;
+  --color-ink-faint: #B0B0A4;
+
+  --color-border-subtle: #E0DAC9;
+  --color-border-strong: #C8C0AC;
+  --color-border-accent: rgba(176, 124, 40, 0.4);
+
+  --color-accent: #B07C28;
+  --color-accent-soft: rgba(176, 124, 40, 0.12);
+  --color-accent-glow: rgba(176, 124, 40, 0.25);
+}
+
+/* Base reset ------------------------------------------------- */
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-ink-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Hide scrollbars on macOS-like systems while keeping wheel scroll */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); }
+
+/* Selection */
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-ink-primary);
+}
+
+/* Focus rings: we draw our own */
+*:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* The signature italic Fraunces speaker name */
+.speaker-label {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variation-settings: "opsz" 14, "wght" 400, "SOFT" 50;
+  color: var(--color-ink-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* The pulsing dot for "listening" indicator */
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 0 var(--color-accent-glow);
+  animation: pulse-ring 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--color-accent-glow); }
+  70%  { box-shadow: 0 0 0 12px rgba(232, 163, 61, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(232, 163, 61, 0); }
+}
+
+/* Generic enter animation for staggered lists */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fade-up 400ms var(--ease-out-expo) both;
+}
+
+/* iOS safe-area insets for the player bar and mobile nav */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
