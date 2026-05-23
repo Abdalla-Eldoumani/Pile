@@ -11,6 +11,14 @@
 
 const JINA_BASE = "https://r.jina.ai/";
 
+const PAYWALL_SIGNALS = [
+  "subscribe to continue",
+  "subscribe to read",
+  "create a free account",
+  "this content is for subscribers",
+  "already a subscriber",
+];
+
 export interface UrlExtraction {
   title: string;
   url: string;          // canonical, tracking-stripped
@@ -18,14 +26,60 @@ export interface UrlExtraction {
 }
 
 export async function fetchUrlAsMarkdown(url: string): Promise<UrlExtraction> {
-  // TODO(T3.1):
-  // 1. strip tracking params (utm_*, fbclid, gclid, ref, mc_eid)
-  // 2. call `${JINA_BASE}${cleanedUrl}` with `Accept: text/markdown` and (if present) `Authorization: Bearer ${process.env.JINA_API_KEY}`
-  // 3. detect paywall: response < 500 chars OR contains paywall keywords -> throw with user-friendly message
-  // 4. parse title from the first markdown H1 if present, else from the URL host
-  // 5. return { title, url: cleanedUrl, markdown }
-  void JINA_BASE;
-  throw new Error("fetchUrlAsMarkdown not implemented; see T3.1 in TASKS.md");
+  const cleanedUrl = stripTrackingParams(url);
+
+  const headers: Record<string, string> = { Accept: "text/markdown" };
+  // Optional: a key raises the rate limit. Jina Reader works without one.
+  if (process.env.JINA_API_KEY) {
+    headers.Authorization = `Bearer ${process.env.JINA_API_KEY}`;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${JINA_BASE}${cleanedUrl}`, { headers });
+  } catch {
+    throw new Error("Could not reach this URL. Check the link.");
+  }
+  if (!res.ok) {
+    throw new Error("Could not reach this URL. Check the link.");
+  }
+
+  const { title: preambleTitle, content } = splitJinaResponse(await res.text());
+
+  const lower = content.toLowerCase();
+  if (content.length < 500 || PAYWALL_SIGNALS.some((s) => lower.includes(s))) {
+    throw new Error(
+      "This article appears to be paywalled or empty. Paste the text manually, or try a different URL.",
+    );
+  }
+
+  const title =
+    preambleTitle ??
+    firstMarkdownHeading(content) ??
+    new URL(cleanedUrl).hostname.replace(/^www\./, "");
+
+  return { title, url: cleanedUrl, markdown: content };
+}
+
+/**
+ * Jina Reader prepends a metadata block ("Title:", "URL Source:",
+ * "Published Time:") and then "Markdown Content:" before the article. Pull
+ * the title out and return only the content below the marker.
+ */
+function splitJinaResponse(raw: string): { title?: string; content: string } {
+  const titleMatch = raw.match(/^Title:\s*(.+)$/m);
+  const title = titleMatch ? titleMatch[1].trim() : undefined;
+
+  const marker = "Markdown Content:";
+  const idx = raw.indexOf(marker);
+  const content = (idx >= 0 ? raw.slice(idx + marker.length) : raw).trim();
+
+  return { title, content };
+}
+
+function firstMarkdownHeading(md: string): string | undefined {
+  const m = md.match(/^#{1,3}\s+(.+)$/m);
+  return m ? m[1].replace(/[#*_`[\]]/g, "").trim() : undefined;
 }
 
 export function stripTrackingParams(rawUrl: string): string {
