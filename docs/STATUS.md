@@ -10,8 +10,10 @@ The core loop is built and works end to end: add a URL or PDF to the Pile, gener
 episode, and two AI hosts (Vega and Theo) produce a conversation where every substantive
 line is anchored to the exact source paragraph it draws from, rendered to a stitched MP3
 with a synced player (audio + waveform + the source paragraph lighting up as it is
-cited). Audio is verified working on the ElevenLabs Starter plan. The remaining build is
-the voice-reminder feature, then demo prep and deploy.
+cited). Audio is verified working on the ElevenLabs Starter plan. The temporal-anchoring
+loop is complete: while listening you can drop a voice (or typed) reminder that pins the
+audio second, the dialogue line, and the source paragraph, and replay from that exact
+moment. What remains is demo prep and deploy.
 
 ## What runs today (try it locally)
 
@@ -38,7 +40,7 @@ pipeline's entry point.
 | 5 | TTS pipeline (synthesis, stitch, waveform, storage) | Done, verified on ElevenLabs Starter |
 | 8 | Pile + Today UI (add, list, generate, view script) | Done (YouTube add is via manual paste) |
 | 6 | Player UI (audio, waveform, source-excerpt panel) | Done |
-| 7 | Reminder feature (voice capture, anchor, .ics) | Not started |
+| 7 | Reminder feature (voice capture, anchor, .ics) | Done |
 | 9, 10 | Demo prep, deploy | Not started |
 
 The authoritative task-by-task breakdown is in `.agent/TASKS.md` (private; in the zip).
@@ -93,12 +95,14 @@ Mirror the client env vars into Vercel; the Convex-side vars stay in Convex.
 
 ## What to build next
 
-1. **Phase 7, reminder feature**: the voice-capture moment that anchors a spoken reminder
-   to the audio second, the dialogue line, and the source paragraph. The demo centerpiece.
-2. **Phases 9 to 10**: seed a demo account, polish, deploy.
+1. **Phase 9, demo prep**: seed a demo account with a few good items, generate a clean
+   pre-baked episode, take screenshots, write the 90-second demo script, record a backup
+   video.
+2. **Phase 10, deploy**: push to Vercel, flip Convex to production, mirror env vars.
 
-The player (Phase 6) is built and compiles; confirm it in a browser by generating a real
-episode and watching the waveform, now-playing line, and source-excerpt panel sync.
+The full loop (Phases 1 to 8 plus the player and reminder) is built and compiles. Confirm
+it in a browser end to end: add two items, generate, open the player, drop a reminder, see
+it on /reminders, and use "play from this moment" to resume at the anchored second.
 
 Deployment and polishing will come through iterative testing and fixes.
 

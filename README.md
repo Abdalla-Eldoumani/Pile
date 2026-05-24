@@ -34,9 +34,10 @@ paragraph, with a player that syncs the waveform, the now-playing line, and the 
 excerpt as each citation plays. Audio is verified on the ElevenLabs Starter plan.
 
 Built: auth, content extraction (URL, PDF, YouTube), chunking, the Claude citation
-pipeline, the audio render pipeline, the add / generate UI, and the episode player. Next:
-the voice-reminder feature, then deploy. Task-level detail is in `.agent/TASKS.md`; the
-team handoff is in [`docs/STATUS.md`](./docs/STATUS.md).
+pipeline, the audio render pipeline, the add / generate UI, the episode player, and the
+voice-reminder feature, so the full temporal-anchoring loop runs end to end. Next: demo
+prep and deploy. Task-level detail is in `.agent/TASKS.md`; the team handoff is in
+[`docs/STATUS.md`](./docs/STATUS.md).
 
 ## Demo
 
