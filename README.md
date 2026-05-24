@@ -12,7 +12,7 @@ Pile turns that pile into a 5 to 8 minute conversation between two AI hosts who 
 
 That alone would be NotebookLM-with-better-taste. The thing that makes Pile different is **temporal anchoring**.
 
-## Temporal anchoring (the innovation)
+## Temporal anchoring
 
 While you're listening, you can hit a mic button and say "remind me Sunday at 7 PM to review the part about attention sinks."
 
