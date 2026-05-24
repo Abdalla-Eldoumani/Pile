@@ -133,6 +133,10 @@ export const renderEpisodeAudio = action({
   handler: async (ctx, { episodeId }): Promise<void> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated.");
+    const owns = await ctx.runQuery(internal.episodes.ownsEpisode, {
+      episodeId,
+    });
+    if (!owns) throw new Error("Not authorized.");
     await renderEpisode(ctx, episodeId);
   },
 });
