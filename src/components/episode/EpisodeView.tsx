@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "convex/react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Mic } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { Waveform } from "@/components/player/Waveform";
 import { SourceExcerpt } from "@/components/episode/SourceExcerpt";
+import {
+  ReminderDropOverlay,
+  type ReminderAnchor,
+} from "@/components/player/ReminderDropOverlay";
 import { formatMs } from "@/lib/utils";
 
 export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
@@ -20,9 +24,16 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
   const rafRef = useRef<number | null>(null);
   const [currentMs, setCurrentMs] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [overlayAnchor, setOverlayAnchor] = useState<ReminderAnchor | null>(null);
 
-  // Read currentTime on every frame: background tabs throttle timers, but the
-  // source-excerpt sync must stay tight (EDGE_CASES "Browser tab inactive").
+  // Resume-from-moment: a reminder's "play from this moment" link adds ?t=<ms>.
+  const seekedRef = useRef(false);
+  const [startMs] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const t = new URLSearchParams(window.location.search).get("t");
+    return t ? Number(t) || 0 : 0;
+  });
+
   const tick = useCallback(() => {
     const a = audioRef.current;
     if (a) setCurrentMs(a.currentTime * 1000);
@@ -62,6 +73,52 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
     a.currentTime = (fraction * durationMs) / 1000;
     setCurrentMs(fraction * durationMs);
   };
+
+  // Open the reminder capture: pause, then anchor to the audio second, the
+  // current line, and the source chunk. On a filler line, walk back to the most
+  // recent cited line for the chunk (EDGE_CASES "Pause anchor on a filler line").
+  const openReminder = () => {
+    if (overlayAnchor) return;
+    audioRef.current?.pause();
+    let chunkId: Id<"chunks"> | undefined;
+    if (lines) {
+      const idx = lines.findIndex((l) => l._id === currentLineId);
+      for (let i = idx; i >= 0; i--) {
+        const cid = lines[i]?.citationChunkId;
+        if (cid) {
+          chunkId = cid;
+          break;
+        }
+      }
+    }
+    const chunk = chunkId ? cited?.find((c) => c.chunkId === chunkId) : undefined;
+    setOverlayAnchor({
+      episodeId,
+      audioAnchorMs: Math.round(currentMs),
+      ...(currentLineId ? { lineId: currentLineId } : {}),
+      ...(chunkId ? { chunkId } : {}),
+      ...(chunk?.text ? { chunkExcerpt: chunk.text } : {}),
+      ...(chunk?.itemTitle ? { itemTitle: chunk.itemTitle } : {}),
+    });
+  };
+
+  // "R" opens the reminder drop (skip when typing). Ref keeps the handler fresh
+  // without re-binding every animation frame.
+  const openRef = useRef(openReminder);
+  openRef.current = openReminder;
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key !== "r" && e.key !== "R") return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
+      e.preventDefault();
+      openRef.current();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   if (episode === undefined) {
     return <p style={{ color: "var(--color-ink-muted)" }}>Loading episode...</p>;
@@ -105,7 +162,6 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_minmax(0,420px)]">
-        {/* Transcript */}
         <div className="flex flex-col gap-5" style={{ maxWidth: 720 }}>
           {(lines ?? []).map((line) => {
             const active = line._id === currentLineId;
@@ -146,13 +202,11 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
           })}
         </div>
 
-        {/* Source excerpt rail */}
         <div className="lg:sticky lg:top-10 self-start w-full">
           <SourceExcerpt chunk={currentChunk} />
         </div>
       </div>
 
-      {/* Player bar */}
       {ready ? (
         <div
           className="fixed left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 px-6 safe-bottom"
@@ -212,7 +266,29 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
           >
             {formatMs(currentMs)} / {formatMs(durationMs)}
           </div>
+
+          <button
+            onClick={openReminder}
+            aria-label="Drop a reminder"
+            title="Drop a reminder (R)"
+            className="shrink-0 flex items-center justify-center rounded-full transition-colors"
+            style={{
+              width: 40,
+              height: 40,
+              border: "1px solid var(--color-border-subtle)",
+              color: "var(--color-ink-secondary)",
+            }}
+          >
+            <Mic size={18} />
+          </button>
         </div>
+      ) : null}
+
+      {overlayAnchor ? (
+        <ReminderDropOverlay
+          anchor={overlayAnchor}
+          onClose={() => setOverlayAnchor(null)}
+        />
       ) : null}
 
       <audio
@@ -223,6 +299,13 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
         onTimeUpdate={(e) => setCurrentMs(e.currentTarget.currentTime * 1000)}
+        onLoadedMetadata={(e) => {
+          if (startMs > 0 && !seekedRef.current) {
+            e.currentTarget.currentTime = startMs / 1000;
+            setCurrentMs(startMs);
+            seekedRef.current = true;
+          }
+        }}
       />
     </div>
   );
