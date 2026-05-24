@@ -2,17 +2,25 @@
 
 import { useState } from "react";
 import { useAction } from "convex/react";
-import { Link2, FileText, X, Loader2 } from "lucide-react";
+import { Link2, FileText, Play, X, Loader2 } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import { extractPdfText } from "@/lib/extraction/pdf";
-import { cn } from "@/lib/utils";
 
-type Tab = "url" | "pdf";
+type Tab = "url" | "pdf" | "youtube";
+
+const TABS = [
+  { id: "url" as const, label: "Link", Icon: Link2 },
+  { id: "pdf" as const, label: "PDF", Icon: FileText },
+  { id: "youtube" as const, label: "YouTube", Icon: Play },
+];
 
 export function AddItemDialog({ onClose }: { onClose: () => void }) {
   const addItem = useAction(api.items.addItem);
   const [tab, setTab] = useState<Tab>("url");
   const [url, setUrl] = useState("");
+  const [ytUrl, setYtUrl] = useState("");
+  const [ytTitle, setYtTitle] = useState("");
+  const [ytTranscript, setYtTranscript] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +53,18 @@ export function AddItemDialog({ onClose }: { onClose: () => void }) {
         title: file.name.replace(/\.pdf$/i, ""),
       });
     });
+  };
+
+  const addYoutube = () => {
+    if (!ytUrl.trim()) return;
+    void run(() =>
+      addItem({
+        kind: "youtube",
+        url: ytUrl.trim(),
+        ...(ytTranscript.trim() ? { text: ytTranscript.trim() } : {}),
+        ...(ytTitle.trim() ? { title: ytTitle.trim() } : {}),
+      }),
+    );
   };
 
   return (
@@ -81,27 +101,23 @@ export function AddItemDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex gap-1 mb-5">
-          {(["url", "pdf"] as const).map((t) => (
+          {TABS.map(({ id, label, Icon }) => (
             <button
-              key={t}
+              key={id}
               onClick={() => {
-                setTab(t);
+                setTab(id);
                 setError(null);
               }}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-md text-[14px] transition-colors",
-              )}
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-[14px] transition-colors"
               style={{
-                background:
-                  tab === t ? "var(--color-surface-3)" : "transparent",
+                background: tab === id ? "var(--color-surface-3)" : "transparent",
                 color:
-                  tab === t
+                  tab === id
                     ? "var(--color-ink-primary)"
                     : "var(--color-ink-muted)",
               }}
             >
-              {t === "url" ? <Link2 size={16} /> : <FileText size={16} />}
-              {t === "url" ? "Link" : "PDF"}
+              <Icon size={16} /> {label}
             </button>
           ))}
         </div>
@@ -131,7 +147,7 @@ export function AddItemDialog({ onClose }: { onClose: () => void }) {
             />
             <PrimaryButton onClick={addUrl} busy={busy} label="Add link" />
           </div>
-        ) : (
+        ) : tab === "pdf" ? (
           <div className="flex flex-col gap-3">
             <label
               className="text-[11px] font-semibold tracking-widest uppercase"
@@ -158,6 +174,55 @@ export function AddItemDialog({ onClose }: { onClose: () => void }) {
                 <Loader2 size={14} className="animate-spin" /> Reading PDF...
               </div>
             ) : null}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <label
+              className="text-[11px] font-semibold tracking-widest uppercase"
+              style={{ color: "var(--color-ink-muted)" }}
+            >
+              YouTube link
+            </label>
+            <input
+              type="url"
+              value={ytUrl}
+              placeholder="https://www.youtube.com/watch?v=..."
+              onChange={(e) => setYtUrl(e.target.value)}
+              disabled={busy}
+              className="h-11 px-4 rounded-md text-[15px] outline-none"
+              style={{
+                background: "var(--color-surface-3)",
+                border: "1px solid var(--color-border-subtle)",
+                color: "var(--color-ink-primary)",
+              }}
+            />
+            <input
+              type="text"
+              value={ytTitle}
+              placeholder="Title (optional)"
+              onChange={(e) => setYtTitle(e.target.value)}
+              disabled={busy}
+              className="h-11 px-4 rounded-md text-[15px] outline-none"
+              style={{
+                background: "var(--color-surface-3)",
+                border: "1px solid var(--color-border-subtle)",
+                color: "var(--color-ink-primary)",
+              }}
+            />
+            <textarea
+              value={ytTranscript}
+              rows={4}
+              placeholder="Paste the transcript here (auto-fetch is unavailable)"
+              onChange={(e) => setYtTranscript(e.target.value)}
+              disabled={busy}
+              className="p-3 rounded-md text-[14px] outline-none resize-none"
+              style={{
+                background: "var(--color-surface-3)",
+                border: "1px solid var(--color-border-subtle)",
+                color: "var(--color-ink-primary)",
+              }}
+            />
+            <PrimaryButton onClick={addYoutube} busy={busy} label="Add video" />
           </div>
         )}
 
