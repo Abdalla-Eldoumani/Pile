@@ -45,6 +45,53 @@ export const latest = query({
   },
 });
 
+/**
+ * The cited chunks for an episode, keyed for the source-excerpt panel: the
+ * player looks up the current line's citationChunkId here to show the source
+ * paragraph. Bounded by the number of distinct cited chunks in one episode.
+ */
+export const citedChunks = query({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }) => {
+    const lines = await ctx.db
+      .query("dialogueLines")
+      .withIndex("by_episode", (q) => q.eq("episodeId", episodeId))
+      .collect();
+
+    const chunkIds = [
+      ...new Set(
+        lines
+          .map((l) => l.citationChunkId)
+          .filter((id): id is NonNullable<typeof id> => id != null),
+      ),
+    ];
+
+    const itemTitle = new Map<string, string>();
+    const out: Array<{
+      chunkId: string;
+      text: string;
+      itemTitle: string;
+      pageStart?: number;
+    }> = [];
+
+    for (const chunkId of chunkIds) {
+      const chunk = await ctx.db.get(chunkId);
+      if (!chunk) continue;
+      if (!itemTitle.has(chunk.itemId)) {
+        const item = await ctx.db.get(chunk.itemId);
+        itemTitle.set(chunk.itemId, item?.title ?? "Source");
+      }
+      out.push({
+        chunkId,
+        text: chunk.text,
+        itemTitle: itemTitle.get(chunk.itemId) ?? "Source",
+        ...(chunk.pageStart !== undefined ? { pageStart: chunk.pageStart } : {}),
+      });
+    }
+    return out;
+  },
+});
+
 export const linesForEpisode = query({
   args: { episodeId: v.id("episodes") },
   handler: async (ctx, { episodeId }) => {
