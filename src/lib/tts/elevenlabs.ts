@@ -43,6 +43,41 @@ const ElevenLabsClient = (
   }
 ).ElevenLabsClient;
 
+// A stalled synthesis must fail the render cleanly instead of leaving the
+// episode stuck on 'rendering' forever (the spinner would never resolve).
+const SYNTH_TIMEOUT_MS = 30_000;
+
+async function withTimeout<T>(
+  p: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${Math.round(ms / 1000)}s.`)),
+      ms,
+    );
+  });
+  try {
+    return await Promise.race([p, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** Map raw ElevenLabs SDK errors to something a listener can act on. */
+function friendlyTtsError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  if (/unusual.?activity/i.test(raw)) {
+    return "ElevenLabs blocked this request (the free tier is flagged). The account needs a paid plan.";
+  }
+  if (/quota|credit|insufficient|limit.?reached/i.test(raw)) {
+    return "ElevenLabs is out of credits. Top up the account and try again.";
+  }
+  return `Voice synthesis failed: ${raw}`;
+}
+
 export async function synthesizeLine(
   text: string,
   speaker: Speaker,
@@ -62,11 +97,20 @@ export async function synthesizeLine(
     apiKey: process.env.ELEVENLABS_API_KEY,
   });
 
-  const result = await client.textToSpeech.convertWithTimestamps(voiceId, {
-    text,
-    modelId: "eleven_flash_v2_5",
-    outputFormat: "mp3_44100_128",
-  });
+  let result: TimestampsResponse;
+  try {
+    result = await withTimeout(
+      client.textToSpeech.convertWithTimestamps(voiceId, {
+        text,
+        modelId: "eleven_flash_v2_5",
+        outputFormat: "mp3_44100_128",
+      }),
+      SYNTH_TIMEOUT_MS,
+      "Voice synthesis",
+    );
+  } catch (err) {
+    throw new Error(friendlyTtsError(err));
+  }
 
   const audioBytes = new Uint8Array(Buffer.from(result.audioBase64, "base64"));
 
