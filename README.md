@@ -26,10 +26,23 @@ So when Sunday at 7 PM arrives, you open the reminder and see the paragraph quot
 
 We build this at generation time, not at playback time. Every dialogue line is produced through Anthropic's structured tool use API with a mandatory citation field; ElevenLabs returns per-character timestamps; the lookup `audioMs -> lineId -> chunkId` is a table, not a search.
 
+## Status
+
+The pipeline is built and runs end to end up to a fully cited script: add a URL or PDF,
+generate, and read a two-host conversation where every substantive line is anchored to
+its source paragraph. Audio synthesis is implemented but waiting on an ElevenLabs account
+upgrade; until then an episode produces its script and citations and reports the audio
+step as unfinished rather than failing silently.
+
+Built: auth, content extraction (URL, PDF, YouTube), chunking, the Claude citation
+pipeline, the audio render pipeline, and the add / generate UI. Next: the audio player,
+the voice-reminder feature, and deploy. Task-level detail is in `.agent/TASKS.md`; the
+team handoff and the service-fix list are in [`docs/STATUS.md`](./docs/STATUS.md).
+
 ## Demo
 
-- Live: [pile.app](https://pile-hackathon.vercel.app) (replace with actual URL at deploy)
-- Video: [docs/demo.mp4](./docs/demo.mp4) (90 second walkthrough)
+Runs locally today (see Setup). Not yet deployed: the public URL and the walkthrough
+video go here at submission.
 
 ## How it works (technical)
 
