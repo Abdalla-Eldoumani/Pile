@@ -104,8 +104,6 @@ The full loop (Phases 1 to 8 plus the player and reminder) is built and compiles
 it in a browser end to end: add two items, generate, open the player, drop a reminder, see
 it on /reminders, and use "play from this moment" to resume at the anchored second.
 
-Deployment and polishing will come through iterative testing and fixes.
-
 ## Run it locally
 
 ```
