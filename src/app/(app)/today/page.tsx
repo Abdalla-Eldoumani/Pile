@@ -1,7 +1,7 @@
-// Implements T8.4 in TASKS.md.
-// Subscribes to today's Episode document; renders generation progress as it streams.
+// Today: generate an episode from the Pile and watch it come together.
+// Implements T8.4.
 
-import { AuthBridgeStatus } from "@/components/AuthBridgeStatus";
+import { GeneratePanel } from "@/components/episode/GeneratePanel";
 
 export default function TodayPage() {
   return (
@@ -25,23 +25,7 @@ export default function TodayPage() {
         </h1>
       </header>
 
-      {/* TODO(T8.4):
-          - if today's Episode exists: render <EpisodeHero episode={...} />
-          - else if Pile has >= 2 items: render <GenerateTodayCTA />
-          - else: render the empty Pile prompt
-        */}
-      <div
-        className="rounded-xl p-10"
-        style={{
-          background: "var(--color-surface-1)",
-          border: "1px solid var(--color-border-subtle)",
-        }}
-      >
-        <p style={{ color: "var(--color-ink-secondary)" }}>
-          Add at least two items to your Pile to generate today{`'`}s episode.
-        </p>
-        <AuthBridgeStatus />
-      </div>
+      <GeneratePanel />
     </div>
   );
 }
