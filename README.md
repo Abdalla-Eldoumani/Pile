@@ -98,6 +98,7 @@ npx convex env set CLERK_JWT_ISSUER_DOMAIN "..."
 npx convex env set ANTHROPIC_API_KEY "sk-ant-..."
 npx convex env set ELEVENLABS_API_KEY "..."
 npm run dev                        # second terminal
+npm test                           # optional: unit tests for the core logic
 ```
 
 Accounts needed: Anthropic (~$5 of credit), ElevenLabs (free tier or ~$5), Clerk (free), Convex (free), Vercel (free).
