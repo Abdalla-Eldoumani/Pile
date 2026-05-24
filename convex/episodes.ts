@@ -27,6 +27,24 @@ export const byId = query({
   },
 });
 
+export const latest = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .unique();
+    if (!user) return null;
+    return await ctx.db
+      .query("episodes")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
+      .first();
+  },
+});
+
 export const linesForEpisode = query({
   args: { episodeId: v.id("episodes") },
   handler: async (ctx, { episodeId }) => {
