@@ -63,11 +63,22 @@ export function ReminderDropOverlay({
     sessionRef.current = s;
     s.onInterim((t) => setTranscript(t));
     s.onFinal((t) => handleText(t));
-    s.onError(() => {
-      setError("Did not catch that. Type it instead.");
+    s.onError((msg) => {
+      if (msg === "not-allowed" || msg === "service-not-allowed") {
+        setError("Microphone access was blocked. Type your reminder instead.");
+      } else if (msg === "no-speech") {
+        setError("I did not hear anything. Try again, or type it instead.");
+      } else {
+        setError("Did not catch that. Type it instead.");
+      }
       setTyping(true);
     });
-    s.start();
+    try {
+      s.start();
+    } catch {
+      setError("Could not start the microphone. Type your reminder instead.");
+      setTyping(true);
+    }
     return () => {
       s.abort();
       sessionRef.current = null;
