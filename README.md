@@ -28,16 +28,15 @@ We build this at generation time, not at playback time. Every dialogue line is p
 
 ## Status
 
-The pipeline is built and runs end to end up to a fully cited script: add a URL or PDF,
-generate, and read a two-host conversation where every substantive line is anchored to
-its source paragraph. Audio synthesis is implemented but waiting on an ElevenLabs account
-upgrade; until then an episode produces its script and citations and reports the audio
-step as unfinished rather than failing silently.
+The core loop runs end to end: add a URL or PDF, generate, and a two-host conversation
+renders to a stitched MP3 where every substantive line is anchored to its source
+paragraph, with a player that syncs the waveform, the now-playing line, and the source
+excerpt as each citation plays. Audio is verified on the ElevenLabs Starter plan.
 
 Built: auth, content extraction (URL, PDF, YouTube), chunking, the Claude citation
-pipeline, the audio render pipeline, and the add / generate UI. Next: the audio player,
-the voice-reminder feature, and deploy. Task-level detail is in `.agent/TASKS.md`; the
-team handoff and the service-fix list are in [`docs/STATUS.md`](./docs/STATUS.md).
+pipeline, the audio render pipeline, the add / generate UI, and the episode player. Next:
+the voice-reminder feature, then deploy. Task-level detail is in `.agent/TASKS.md`; the
+team handoff is in [`docs/STATUS.md`](./docs/STATUS.md).
 
 ## Demo
 

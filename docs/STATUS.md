@@ -6,12 +6,12 @@ this file is the PDF.
 
 ## In one paragraph
 
-The core pipeline is built and works end to end up to a fully cited script: add a URL or
-PDF to the Pile, generate an episode, and watch two AI hosts (Vega and Theo) produce a
-conversation where every substantive line is anchored to the exact source paragraph it
-draws from. Audio synthesis is fully implemented but currently blocked by an ElevenLabs
-account limit (see "Services to fix"). Everything else degrades cleanly: a blocked
-render leaves the script and its citations visible, never a crash.
+The core loop is built and works end to end: add a URL or PDF to the Pile, generate an
+episode, and two AI hosts (Vega and Theo) produce a conversation where every substantive
+line is anchored to the exact source paragraph it draws from, rendered to a stitched MP3
+with a synced player (audio + waveform + the source paragraph lighting up as it is
+cited). Audio is verified working on the ElevenLabs Starter plan. The remaining build is
+the voice-reminder feature, then demo prep and deploy.
 
 ## What runs today (try it locally)
 
@@ -35,9 +35,9 @@ pipeline's entry point.
 | 2 | Layout shell, design tokens, self-hosted fonts | Done (light-theme toggle deferred, a planned cut) |
 | 3 | Content extraction (URL, PDF, YouTube, chunking, addItem) | Done |
 | 4 | Script generation with per-line tool-use citations | Done, verified against the live model |
-| 5 | TTS pipeline (synthesis, stitch, waveform, storage) | Code done, blocked on the ElevenLabs account |
+| 5 | TTS pipeline (synthesis, stitch, waveform, storage) | Done, verified on ElevenLabs Starter |
 | 8 | Pile + Today UI (add, list, generate, view script) | Done (YouTube add is via manual paste) |
-| 6 | Player UI (audio, waveform, source-excerpt panel) | Not started |
+| 6 | Player UI (audio, waveform, source-excerpt panel) | Done |
 | 7 | Reminder feature (voice capture, anchor, .ics) | Not started |
 | 9, 10 | Demo prep, deploy | Not started |
 
@@ -55,22 +55,13 @@ The authoritative task-by-task breakdown is in `.agent/TASKS.md` (private; in th
 
 ## Services to fix
 
-### 1. ElevenLabs (blocks audio: do this first)
+### 1. ElevenLabs (resolved)
 
-A live synthesis call returns `401 detected_unusual_activity: "Free Tier usage
-disabled... purchase a Paid Plan."` The key is valid and our request is correct; the
-account's free tier is flagged (common when a VPN or proxy is detected).
-
-- **Fix:** upgrade the ElevenLabs account to a paid plan (Starter, about $5/month), or
-  use a key from an account that is not on a flagged network. No code change is needed.
-- After fixing, set the two voice ids if not already set, then regenerate an episode:
-  it should reach `ready` with playable audio.
-  ```
-  npx convex env set ELEVENLABS_VEGA_VOICE_ID "..."
-  npx convex env set ELEVENLABS_THEO_VOICE_ID "..."
-  ```
-- Until then, generation stops at the audio step and the episode shows `failed` with
-  that message. The script and citations are still produced.
+The account is on the Starter plan and synthesis is verified: a live test produced real
+MP3 for both voices, stitched and stored in Convex, and fetched back intact (`audio/mpeg`,
+bytes matched). The earlier free-tier 401 (`detected_unusual_activity`) is gone. No action
+needed unless the key or the two voice ids (`ELEVENLABS_VEGA_VOICE_ID`,
+`ELEVENLABS_THEO_VOICE_ID`) change.
 
 ### 2. Environment variables (confirm all are set)
 
@@ -102,13 +93,12 @@ Mirror the client env vars into Vercel; the Convex-side vars stay in Convex.
 
 ## What to build next
 
-1. **Phase 6, player UI**: audio element, waveform, the now-playing line, and the
-   source-excerpt panel that lights up as each cited line plays. Best done once
-   ElevenLabs audio works so sync can be seen.
-2. **Phase 7, reminder feature**: the voice-capture moment that anchors a spoken reminder
+1. **Phase 7, reminder feature**: the voice-capture moment that anchors a spoken reminder
    to the audio second, the dialogue line, and the source paragraph. The demo centerpiece.
-   Needs a playable episode.
-3. **Phases 9 to 10**: seed a demo account, polish, deploy.
+2. **Phases 9 to 10**: seed a demo account, polish, deploy.
+
+The player (Phase 6) is built and compiles; confirm it in a browser by generating a real
+episode and watching the waveform, now-playing line, and source-excerpt panel sync.
 
 Deployment and polishing will come through iterative testing and fixes.
 
