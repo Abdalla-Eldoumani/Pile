@@ -11,22 +11,27 @@ export function ReminderCard({ reminder }: { reminder: Doc<"reminders"> }) {
   const dismiss = useMutation(api.reminders.dismiss);
 
   function downloadIcs() {
-    const ics = buildIcs(
-      {
-        id: reminder._id,
-        userId: reminder.userId,
-        scheduledFor: reminder.scheduledFor,
-        label: reminder.label,
-        episodeId: reminder.episodeId,
-        audioAnchorMs: reminder.audioAnchorMs,
-        lineId: reminder.lineId,
-        chunkId: reminder.chunkId,
-        chunkExcerpt: reminder.chunkExcerpt,
-        status: reminder.status,
-        createdAt: reminder.createdAt,
-      },
-      { baseUrl: window.location.origin },
-    );
+    let ics: string;
+    try {
+      ics = buildIcs(
+        {
+          id: reminder._id,
+          userId: reminder.userId,
+          scheduledFor: reminder.scheduledFor,
+          label: reminder.label,
+          episodeId: reminder.episodeId,
+          audioAnchorMs: reminder.audioAnchorMs,
+          lineId: reminder.lineId,
+          chunkId: reminder.chunkId,
+          chunkExcerpt: reminder.chunkExcerpt,
+          status: reminder.status,
+          createdAt: reminder.createdAt,
+        },
+        { baseUrl: window.location.origin },
+      );
+    } catch {
+      return;
+    }
     const url = URL.createObjectURL(
       new Blob([ics], { type: "text/calendar;charset=utf-8" }),
     );
