@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Pin the workspace root to the project dir. A stray package-lock.json in the
+  // home directory otherwise makes Turbopack infer the wrong root, which also
+  // skews the production build's file tracing. dev/build run from the project
+  // root, so process.cwd() is that dir (and always a defined string).
+  turbopack: {
+    root: process.cwd(),
+  },
   // pdfjs-dist ships a worker; we let Next bundle it via dynamic import.
   // If "Module not found: pdfjs-dist/legacy/build/pdf" surfaces, add
   // a copy step to public/ and reference /pdf.worker.min.mjs explicitly.
