@@ -36,7 +36,14 @@ export const byId = query({
   handler: async (ctx, { reminderId }) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
-    return await ctx.db.get(reminderId);
+    const reminder = await ctx.db.get(reminderId);
+    if (!reminder) return null;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .unique();
+    if (!user || user._id !== reminder.userId) return null;
+    return reminder;
   },
 });
 
@@ -96,6 +103,15 @@ export const dismiss = mutation({
   handler: async (ctx, { reminderId }) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated.");
+    const reminder = await ctx.db.get(reminderId);
+    if (!reminder) return;
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+      .unique();
+    if (!user || user._id !== reminder.userId) {
+      throw new Error("Not authorized.");
+    }
     await ctx.db.patch(reminderId, { status: "dismissed" });
   },
 });
