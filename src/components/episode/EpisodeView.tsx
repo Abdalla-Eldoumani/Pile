@@ -20,6 +20,13 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
   const marks = useQuery(api.episodes.timingForEpisode, { episodeId });
   const cited = useQuery(api.episodes.citedChunks, { episodeId });
 
+  // Freeze the first non-null audio URL for the session. Convex returns a
+  // signed storage URL that can change identity on a refetch; if the <audio>
+  // src string changes, the browser reloads and playback jumps back to zero.
+  const stableUrlRef = useRef<string | null>(null);
+  if (audioUrl && !stableUrlRef.current) stableUrlRef.current = audioUrl;
+  const playableUrl = stableUrlRef.current;
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const rafRef = useRef<number | null>(null);
   const [currentMs, setCurrentMs] = useState(0);
@@ -131,7 +138,7 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
     );
   }
 
-  const ready = episode.status === "ready" && !!audioUrl;
+  const ready = episode.status === "ready" && !!playableUrl;
 
   return (
     <div className="pb-40">
@@ -293,7 +300,7 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
 
       <audio
         ref={audioRef}
-        src={audioUrl ?? undefined}
+        src={playableUrl ?? undefined}
         preload="metadata"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
