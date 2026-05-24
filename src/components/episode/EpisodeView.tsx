@@ -305,7 +305,12 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
-        onTimeUpdate={(e) => setCurrentMs(e.currentTarget.currentTime * 1000)}
+        onTimeUpdate={(e) => {
+          // While playing, the rAF loop owns currentMs. Update here only when
+          // paused or seeking (and as a background-tab fallback) so two writers
+          // never fight over the value.
+          if (!playing) setCurrentMs(e.currentTarget.currentTime * 1000);
+        }}
         onLoadedMetadata={(e) => {
           if (startMs > 0 && !seekedRef.current) {
             e.currentTarget.currentTime = startMs / 1000;
