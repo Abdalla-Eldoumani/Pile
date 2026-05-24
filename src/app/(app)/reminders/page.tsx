@@ -1,5 +1,7 @@
 // Implements T7.6 in TASKS.md.
 
+import { RemindersList } from "@/components/reminders/RemindersList";
+
 export default function RemindersPage() {
   return (
     <div className="max-w-[1280px] mx-auto px-6 md:px-10 py-10 md:py-16">
@@ -30,19 +32,7 @@ export default function RemindersPage() {
         </p>
       </header>
 
-      {/* TODO(T7.6): <ReminderList /> reads from convex/reminders.list query */}
-      <div
-        className="rounded-xl p-10 text-center"
-        style={{
-          background: "var(--color-surface-1)",
-          border: "1px solid var(--color-border-subtle)",
-        }}
-      >
-        <p style={{ color: "var(--color-ink-secondary)" }}>
-          You haven{`'`}t set a reminder yet. Start an episode and try the mic
-          button while you listen.
-        </p>
-      </div>
+      <RemindersList />
     </div>
   );
 }
