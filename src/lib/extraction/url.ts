@@ -26,6 +26,17 @@ export interface UrlExtraction {
 }
 
 export async function fetchUrlAsMarkdown(url: string): Promise<UrlExtraction> {
+  // Reject non-web schemes (file:, data:, etc.) before handing the URL to Jina.
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("That does not look like a valid URL.");
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Only http and https links can be added.");
+  }
+
   const cleanedUrl = stripTrackingParams(url);
 
   const headers: Record<string, string> = { Accept: "text/markdown" };
