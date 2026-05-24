@@ -111,7 +111,10 @@ The full design system: `.agent/DESIGN_SYSTEM.md`.
 
 ## Team
 
-(Add team names here at submission.)
+Abdalla ElDoumani
+Seyar Hazrat
+Ahmed Ibrahim
+Ibrahim Ahmed
 
 ## License
 
