@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery, useAction } from "convex/react";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Headphones } from "lucide-react";
 import { api } from "@convex/_generated/api";
 import type { Doc } from "@convex/_generated/dataModel";
 
@@ -83,6 +84,19 @@ export function GeneratePanel() {
       {episode ? (
         <div className="flex flex-col gap-6">
           <StatusBanner episode={episode} />
+          {episode.status === "ready" ? (
+            <Link
+              href={`/episode/${episode._id}`}
+              className="inline-flex items-center gap-2 self-start px-5 py-2.5 rounded-md text-[14px] font-medium transition-all hover:brightness-110"
+              style={{
+                background: "var(--color-accent)",
+                color: "var(--color-bg)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <Headphones size={15} /> Open the player
+            </Link>
+          ) : null}
           {lines && lines.length > 0 ? (
             <div
               className="flex flex-col gap-5 p-6 md:p-8"
