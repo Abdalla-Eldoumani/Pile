@@ -17,6 +17,10 @@ import { chunkText } from "../src/lib/extraction/chunk";
  */
 
 const MIN_CONTENT_CHARS = 50;
+// Upper bound so a crafted client call can't store a giant blob and blow up the
+// chunk count and downstream AI cost. The client PDF extractor caps pages, but
+// that cap is advisory: addItem can be called directly, so enforce here too.
+const MAX_CONTENT_CHARS = 500_000;
 
 export const list = query({
   args: {},
@@ -95,6 +99,11 @@ export const addItem = action({
     content = content.trim();
     if (content.length < MIN_CONTENT_CHARS) {
       throw new Error("There was not enough text to add this item.");
+    }
+    if (content.length > MAX_CONTENT_CHARS) {
+      throw new Error(
+        "This source is too large to add. Try a shorter article or document.",
+      );
     }
 
     const rawChunks = chunkText(content, { itemId: "pending" });
