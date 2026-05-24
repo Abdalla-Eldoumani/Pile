@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 
 /**
@@ -11,20 +12,32 @@ import type { Doc, Id } from "./_generated/dataModel";
  * row, load source, and save the script. Audio (T5.5) is Phase 5.
  */
 
+/**
+ * Resolve an episode only if the authenticated caller owns it. Every public
+ * query that takes an episodeId routes through this, so one user can never read
+ * another user's episode, transcript, timing marks, source excerpts, or audio
+ * by guessing an id. Returns null for unauthenticated, missing, or other-user
+ * episodes; callers map null to an empty result.
+ */
+async function ownedEpisode(
+  ctx: QueryCtx,
+  episodeId: Id<"episodes">,
+): Promise<Doc<"episodes"> | null> {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  const ep = await ctx.db.get(episodeId);
+  if (!ep) return null;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
+    .unique();
+  if (!user || user._id !== ep.userId) return null;
+  return ep;
+}
+
 export const byId = query({
   args: { episodeId: v.id("episodes") },
-  handler: async (ctx, { episodeId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    const ep = await ctx.db.get(episodeId);
-    if (!ep) return null;
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkUserId", identity.subject))
-      .unique();
-    if (!user || user._id !== ep.userId) return null;
-    return ep;
-  },
+  handler: async (ctx, { episodeId }) => ownedEpisode(ctx, episodeId),
 });
 
 export const latest = query({
@@ -53,6 +66,7 @@ export const latest = query({
 export const citedChunks = query({
   args: { episodeId: v.id("episodes") },
   handler: async (ctx, { episodeId }) => {
+    if (!(await ownedEpisode(ctx, episodeId))) return [];
     const lines = await ctx.db
       .query("dialogueLines")
       .withIndex("by_episode", (q) => q.eq("episodeId", episodeId))
@@ -95,8 +109,7 @@ export const citedChunks = query({
 export const linesForEpisode = query({
   args: { episodeId: v.id("episodes") },
   handler: async (ctx, { episodeId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
+    if (!(await ownedEpisode(ctx, episodeId))) return [];
     return await ctx.db
       .query("dialogueLines")
       .withIndex("by_episode", (q) => q.eq("episodeId", episodeId))
@@ -107,6 +120,7 @@ export const linesForEpisode = query({
 export const timingForEpisode = query({
   args: { episodeId: v.id("episodes") },
   handler: async (ctx, { episodeId }) => {
+    if (!(await ownedEpisode(ctx, episodeId))) return [];
     return await ctx.db
       .query("timingMarks")
       .withIndex("by_episode", (q) => q.eq("episodeId", episodeId))
@@ -272,10 +286,18 @@ export const saveAudio = internalMutation({
 export const audioUrl = query({
   args: { episodeId: v.id("episodes") },
   handler: async (ctx, { episodeId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    const ep = await ctx.db.get(episodeId);
+    const ep = await ownedEpisode(ctx, episodeId);
     if (!ep || !ep.audioFileId) return null;
     return await ctx.storage.getUrl(ep.audioFileId);
   },
+});
+
+/**
+ * Ownership check callable from the "use node" render action, which cannot
+ * share a file with these queries. Auth propagates through ctx.runQuery.
+ */
+export const ownsEpisode = internalQuery({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }): Promise<boolean> =>
+    (await ownedEpisode(ctx, episodeId)) !== null,
 });
