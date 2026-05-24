@@ -31,8 +31,10 @@ export function GeneratePanel() {
   const [error, setError] = useState<string | null>(null);
 
   const itemCount = items?.length ?? 0;
-  const canGenerate = itemCount >= 2 && !busy;
   const inFlight = episode ? !TERMINAL.has(episode.status) : false;
+  // Block a second generation while one is running: prevents a double-click or
+  // a second tab from kicking off a parallel Claude + ElevenLabs run.
+  const canGenerate = itemCount >= 2 && !busy && !inFlight;
 
   async function onGenerate() {
     if (!items || items.length < 2) return;
