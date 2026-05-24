@@ -47,11 +47,14 @@ The authoritative task-by-task breakdown is in `.agent/TASKS.md` (private; in th
 
 ## How it was verified
 
-- `npm run typecheck`, `npm run lint`, and `npm run build` are green.
+- `npm run typecheck`, `npm run lint`, `npm run build`, and `npm test` are green.
 - Convex functions deploy cleanly (script and audio actions run in the Node runtime).
-- Tested against real services: URL extraction (live Jina), script generation (live
-  Claude Opus: 18 lines, zero invalid citations), and the pure modules (chunking,
-  stitching, waveform) by unit test.
+- Every Convex read and write enforces row-level ownership: a signed-in user cannot
+  read or change another user's episodes, transcript, audio, or reminders by id.
+- Tested against real services: URL extraction (live Jina) and script generation (live
+  Claude Opus: 18 lines, zero invalid citations). The deterministic core (chunking, audio
+  stitching, waveform, reminder parsing, citation validation, and .ics) has a unit suite:
+  24 tests, run with `npm test`.
 - Not yet verifiable without a person at a browser: the interactive add and generate
   flow (Clerk sign-in cannot be driven headlessly) and audio (see below).
 
