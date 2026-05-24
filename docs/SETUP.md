@@ -322,7 +322,10 @@ Your `.env.local` does not have the key, OR the dev server was started before th
 
 ### ElevenLabs returns 401 on TTS calls
 
-The API key does not have **Text to Speech** permission. Go back to the dashboard, edit the key (or create a new one), and explicitly enable the Text to Speech scope.
+Two common causes:
+
+1. **Missing scope**: the key lacks **Text to Speech** permission. Edit the key (or create a new one) and enable the Text to Speech scope.
+2. **Free tier disabled**: the response body reads `detected_unusual_activity` / "Free Tier usage disabled... purchase a Paid Plan." The key is valid, but the account is flagged (often a VPN or proxy trigger). Upgrade to a paid plan (Starter, about $5/month) or use a key from an unflagged account. No code change is needed; episodes reach `ready` once the account can synthesize.
 
 ### `Module not found: pdfjs-dist/legacy/build/pdf`
 
