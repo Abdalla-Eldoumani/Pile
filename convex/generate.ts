@@ -18,7 +18,7 @@ import { computeWaveform } from "../src/lib/tts/waveform";
  * lines. Any failure flips the episode to 'failed' instead of throwing, so the
  * subscribed UI always has a status to render.
  *
- * Implements T4.3. Audio (scripted -> ready, T5.5) is Phase 5.
+ * Audio (scripted -> ready) continues in the same run.
  */
 
 // Bound context/cost on a large Pile.
