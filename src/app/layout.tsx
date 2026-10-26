@@ -29,10 +29,9 @@ export default function RootLayout({
       <html lang="en" data-theme="dark" suppressHydrationWarning>
         <head>
           {/*
-            General Sans is self-hosted. The agent will run the install
-            and copy files in T2.4. Once the files are in /public/fonts/
-            general-sans/, this @font-face will resolve. Until then, the
-            font-sans fallback chain (system-ui) is what renders.
+            General Sans is self-hosted from /public/fonts/general-sans/.
+            If those files are missing, the font-sans fallback chain
+            (system-ui) is what renders.
           */}
           <style
             dangerouslySetInnerHTML={{
