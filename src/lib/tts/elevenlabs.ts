@@ -1,7 +1,7 @@
 /**
  * ElevenLabs TTS with character-level timestamps.
  *
- * Implements T5.1 in TASKS.md. Server-only: runs inside a Convex "use node"
+ * Server-only: runs inside a Convex "use node"
  * action (the SDK pulls in Node built-ins, like the Anthropic SDK).
  *
  * Package: @elevenlabs/elevenlabs-js 2.47.x. Model: eleven_flash_v2_5.
