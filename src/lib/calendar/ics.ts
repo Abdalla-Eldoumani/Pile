@@ -1,9 +1,9 @@
 /**
  * Generate an .ics calendar file from a Reminder.
  *
- * Implements T7.8 in TASKS.md. Pure function.
+ * Pure function.
  *
- * EDGE_CASES.md: must include DTSTAMP; must use CRLF line endings; tested
+ * Edge cases: must include DTSTAMP; must use CRLF line endings; tested
  * against both Google Calendar AND Apple Calendar before shipping.
  */
 
@@ -43,7 +43,7 @@ export function buildIcs(reminder: Reminder, opts: IcsBuildOptions): string {
   if (error || !value) {
     throw new Error(`Failed to build .ics: ${error?.message ?? "unknown"}`);
   }
-  // The `ics` package emits CRLF already, but verify against EDGE_CASES.md
+  // The `ics` package emits CRLF already, but verify CRLF and DTSTAMP
   // before shipping.
   return value;
 }
