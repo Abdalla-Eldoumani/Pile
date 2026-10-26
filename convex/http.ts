@@ -6,7 +6,7 @@ import { httpRouter } from "convex/server";
  * Add a Clerk webhook here later for user.deleted -> cascade cleanup.
  * Document path: /clerk-webhook. Use svix to verify the signature.
  *
- * Empty at scaffold time; mount real endpoints during the build.
+ * No endpoints are mounted yet.
  */
 
 const http = httpRouter();
