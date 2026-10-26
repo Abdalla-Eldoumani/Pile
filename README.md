@@ -90,7 +90,7 @@ Short version:
 ```bash
 npm install
 npx convex dev                     # one terminal
-cp .env.example .env.local         # add Clerk keys, see docs/SETUP.md step 3
+# put your Clerk keys in .env.local (docs/SETUP.md step 3)
 npx convex env set CLERK_JWT_ISSUER_DOMAIN "..."
 npx convex env set ANTHROPIC_API_KEY "sk-ant-..."
 npx convex env set ELEVENLABS_API_KEY "..."
