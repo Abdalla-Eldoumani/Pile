@@ -1,9 +1,9 @@
 /**
  * Web Speech API wrapper for the reminder-drop feature.
  *
- * Implements T7.1 in TASKS.md. Client-only.
+ * Client-only.
  *
- * EDGE_CASES.md: Firefox has no support (use Whisper fallback). Safari
+ * Edge cases: Firefox has no support (use Whisper fallback). Safari
  * desktop is intermittent. Safari iOS needs a user gesture to start.
  *
  * The fallback path (record + Whisper) is sketched here as TODO; the
