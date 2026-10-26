@@ -9,7 +9,8 @@ import type { Doc, Id } from "./_generated/dataModel";
  * The generateEpisode ACTION lives in convex/generate.ts ("use node"): the
  * Anthropic SDK needs the Node runtime, which cannot share a file with queries
  * or mutations. That action calls the internal functions below to create the
- * row, load source, and save the script. Audio (T5.5) is Phase 5.
+ * row, load source, and save the script. Audio rendering is in the section
+ * below.
  */
 
 /**
@@ -220,7 +221,7 @@ export const markFailed = internalMutation({
   },
 });
 
-// --- Audio render (Phase 5) ---
+// --- Audio render ---
 
 export const linesForEpisodeInternal = internalQuery({
   args: { episodeId: v.id("episodes") },
