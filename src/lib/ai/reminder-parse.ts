@@ -1,8 +1,6 @@
 /**
  * Parse a spoken reminder into a structured Reminder.
  *
- * Implements T7.2 in TASKS.md.
- *
  * Input: the user's spoken transcript plus the current audio anchor
  * (which chunk was being discussed when they hit the mic).
  *
@@ -12,7 +10,7 @@
  * context, so "the part about attention sinks" becomes "Attention sinks
  * in transformer architectures (from 'The KV Cache Problem,' p. 4)".
  *
- * EDGE_CASES.md: past dates (refuse), ambiguous AM/PM (default PM after
+ * Edge cases: past dates (refuse), ambiguous AM/PM (default PM after
  * 6 local time), timezone (browser-provided), DST.
  */
 
@@ -68,7 +66,7 @@ export async function parseReminder(
 }
 
 async function refineLabel(rawLabel: string, anchor: AudioAnchor): Promise<string> {
-  // TODO(T7.2): Anthropic call.
+  // TODO: Anthropic call.
   //
   // const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   // const response = await client.messages.create({
@@ -84,6 +82,6 @@ async function refineLabel(rawLabel: string, anchor: AudioAnchor): Promise<strin
   void Anthropic;
   void anchor;
 
-  // Fallback (T7.2 not implemented yet): return the raw label, stripped of "remind me to".
+  // Fallback (the Anthropic call is not implemented yet): return the raw label, stripped of "remind me to".
   return rawLabel.replace(/^remind me( to)?\s*/i, "").trim() || "Review this moment";
 }
