@@ -5,8 +5,6 @@ import { internal } from "./_generated/api";
 /**
  * Reminders: the demo-magic feature.
  *
- * Implements T7.4 + T7.5 in TASKS.md.
- *
  * createReminder writes the row AND schedules its firing via
  * scheduler.runAt. The scheduled function flips status and (stretch)
  * sends a notification. The reminder is durable: if the server restarts,
@@ -122,6 +120,6 @@ export const fire = internalMutation({
     const r = await ctx.db.get(reminderId);
     if (!r || r.status !== "pending") return;
     await ctx.db.patch(reminderId, { status: "fired" });
-    // TODO(T7.5 stretch): send a Web Push notification here.
+    // TODO(stretch): send a Web Push notification here.
   },
 });
