@@ -36,8 +36,7 @@ excerpt as each citation plays. Audio is verified on the ElevenLabs Starter plan
 Built: auth, content extraction (URL, PDF, YouTube), chunking, the Claude citation
 pipeline, the audio render pipeline, the add / generate UI, the episode player, and the
 voice-reminder feature, so the full temporal-anchoring loop runs end to end. Next: demo
-prep and deploy. Task-level detail is in `.agent/TASKS.md`; the team handoff is in
-[`docs/STATUS.md`](./docs/STATUS.md).
+prep and deploy. The team handoff is in [`docs/STATUS.md`](./docs/STATUS.md).
 
 ## Demo
 
@@ -65,8 +64,6 @@ Add to Pile  ->  Extract text  ->  Chunk with stable IDs
                                 Player + voice reminder feature
                                 using the lookup as the temporal anchor
 ```
-
-The full data flow and rationale are in `.agent/ARCHITECTURE.md` (private; pull from the repo if you have access).
 
 ## Stack
 
@@ -106,8 +103,6 @@ Accounts needed: Anthropic (~$5 of credit), ElevenLabs (free tier or ~$5), Clerk
 ## Design
 
 Editorial dark. Single warm-gold accent. Fraunces variable serif (italic speaker names, a nod to opera librettos) paired with General Sans. No drop shadows; depth comes from borders and spacing. No purples, no teals, no cyans. Tailwind v4 with the design tokens declared in `src/app/globals.css`.
-
-The full design system: `.agent/DESIGN_SYSTEM.md`.
 
 ## Team
 
