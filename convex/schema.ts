@@ -5,7 +5,7 @@ import { v } from "convex/values";
  * Pile: Convex schema.
  *
  * Source of truth. Keep src/lib/types.ts aligned with this file.
- * See .agent/ARCHITECTURE.md for the data-flow rationale.
+ * The data flow is summarized in README.md (How it works).
  */
 
 export default defineSchema({
