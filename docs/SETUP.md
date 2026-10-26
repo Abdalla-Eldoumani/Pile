@@ -4,8 +4,6 @@ What to do, in order, to get a working local copy of Pile. Written for someone w
 
 Expected time: 20 to 30 minutes if no account exists for any of the services; 10 to 15 minutes if you have accounts already.
 
-This guide does not assume any particular AI build tool. Use Cursor, Claude Code, Continue, Aider, Cline, plain VS Code with Copilot, or no AI at all. The setup is the same; only the editor in front of you differs.
-
 ## What you need before starting
 
 Accounts at the following services. All free tiers are sufficient for the hackathon. Sign up for what you do not already have before going further.
@@ -31,25 +29,8 @@ Optional but useful:
 ## 1. Clone and install
 
 ```bash
-unzip pile-scaffold.zip -d pile
-cd pile
-git init
-git add .
-git commit -m "initial scaffold"
-```
-
-Make the private agent infrastructure invisible to git (the `.agent/` folder, every `CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, `.planning/`):
-
-```bash
-cat .git-exclude-template >> .git/info/exclude
-rm .git-exclude-template
-```
-
-Verify the exclude is working. This must print a line confirming the match:
-
-```bash
-git check-ignore -v .agent/PRD.md
-# expected: .git/info/exclude:N:.agent/    .agent/PRD.md
+git clone https://github.com/Abdalla-Eldoumani/Pile
+cd Pile
 ```
 
 Install dependencies. Expect this to take ~3 minutes:
@@ -109,7 +90,7 @@ Clerk handles every sign-in / sign-up screen so you do not have to build them.
 
 On the application's home screen, Clerk shows the two keys you need. They begin with `pk_test_...` and `sk_test_...`.
 
-Open `.env.local` in your editor and add (or fill in the placeholder lines that came with the scaffold):
+Open `.env.local` in your editor and add:
 
 ```
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
@@ -149,7 +130,7 @@ npx convex env list
 
 You should see `CLERK_JWT_ISSUER_DOMAIN` in the output.
 
-The file `convex/auth.config.ts` in the scaffold already references this env var and registers `applicationID: "convex"`, matching the JWT template name from step 3.3.3.
+The file `convex/auth.config.ts` already references this env var and registers `applicationID: "convex"`, matching the JWT template name from step 3.3.3.
 
 ## 4. Anthropic
 
@@ -171,7 +152,7 @@ npx convex env set ANTHROPIC_API_KEY "sk-ant-..."
 
 ## 5. ElevenLabs
 
-For the two AI host voices. You can defer voice selection to later (the scaffold's TTS module will pick voices once you set the env vars). What you need at setup time is the API key.
+For the two AI host voices. You need the API key now; the two voice IDs can wait until you first render audio (step 5.3).
 
 ### 5.1 Get the key
 
@@ -189,9 +170,9 @@ For the two AI host voices. You can defer voice selection to later (the scaffold
 npx convex env set ELEVENLABS_API_KEY "..."
 ```
 
-### 5.3 Voice IDs (defer this step)
+### 5.3 Voice IDs
 
-You will need two voice IDs (Vega and Theo). These can be picked later once the audio pipeline is being built. When you are ready:
+Audio rendering needs two voice IDs (Vega and Theo); it fails with a clear error until both are set. When you are ready:
 
 1. Browse https://elevenlabs.io/app/voice-library
 2. Open a voice you like. Look at the URL: the long string after `/voice-library/` is the voice id. Copy it.
@@ -209,20 +190,17 @@ For a starting point, well-known public voices:
 
 You can change these later; rendering an episode does not memoize the voice id.
 
-## 6. Optional: Upstash Redis for URL rate limiting
+## 6. Optional: Jina API key for URL extraction
 
-The scaffold's URL extraction uses Jina Reader (free, rate-limited). If you want to protect against a burst of paste-URL spam during the demo, set up Upstash Redis:
+URL extraction uses Jina Reader, which works without a key at modest traffic. A key raises the rate limit:
 
-1. Sign up at https://console.upstash.com (free)
-2. Create a Redis database (any region near you)
-3. From the database page, copy **UPSTASH_REDIS_REST_URL** and **UPSTASH_REDIS_REST_TOKEN**
-4. Set both as Convex env vars:
+1. Get a key at https://jina.ai
+2. Set it as a Convex env var:
    ```bash
-   npx convex env set UPSTASH_REDIS_REST_URL "..."
-   npx convex env set UPSTASH_REDIS_REST_TOKEN "..."
+   npx convex env set JINA_API_KEY "..."
    ```
 
-Skip this step if you are short on time. The scaffold treats the rate limiter as optional.
+Skip this step if you are short on time; extraction works without it.
 
 ## 7. Run locally and verify
 
@@ -256,7 +234,7 @@ If you see Convex requests returning `401 Unauthorized`, the JWT template is not
 - The Issuer URL in Convex env must match the one shown in the Clerk JWT template
 - After fixing, restart `npx convex dev` so it picks up the new env var
 
-A quick programmatic check (only after the agent has implemented users.me in Phase 1):
+A quick programmatic check:
 
 ```javascript
 // In a client component:
@@ -329,21 +307,8 @@ Two common causes:
 
 ### `Module not found: pdfjs-dist/legacy/build/pdf`
 
-pdfjs-dist import paths are quirky. The scaffold imports it as `'pdfjs-dist'` and sets the worker via dynamic copy. If you see this error, ensure the worker file ships from `node_modules/pdfjs-dist/build/pdf.worker.min.mjs`. The agent will handle this in Phase 3.
-
-### A different teammate cloned and `.agent/` is missing
-
-That is correct. `.agent/` is excluded from the public repo via `.git/info/exclude` and never committed. Each teammate gets a fresh copy by re-extracting the zip on their machine and re-running:
-
-```bash
-cat .git-exclude-template >> .git/info/exclude
-rm .git-exclude-template
-```
-
-If the original zip is not on their machine, share the contents of `.agent/` via DM or USB; never commit them.
+pdfjs-dist import paths are quirky. The app imports it as `'pdfjs-dist'` and loads the worker from `public/pdfjs/pdf.worker.min.mjs`, a copy of `node_modules/pdfjs-dist/build/pdf.worker.min.mjs`. If you upgrade pdfjs-dist, copy the new worker file over it.
 
 ## When you are done
 
-Open `.agent/STARTING_PROMPT.md` and paste it into your AI coding tool. The agent will read the docs, confirm pre-flight is complete, and pick the next task off `TASKS.md`.
-
-If you are not using an AI tool: read `.agent/PRD.md`, `.agent/ARCHITECTURE.md`, and `.agent/TASKS.md` in that order, then start on Phase 1.
+Run `npm test` for the unit suite, then see [`STATUS.md`](./STATUS.md) for what is built and what is left.
