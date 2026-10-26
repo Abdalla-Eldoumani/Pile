@@ -1,7 +1,7 @@
 /**
  * Precompute a 600-bucket waveform for the player.
  *
- * Implements T5.4 in TASKS.md. Pure, server-side (runs in the render action).
+ * Pure, server-side (runs in the render action).
  *
  * We derive the waveform from the speech timing ElevenLabs already returns
  * rather than decoding the MP3: amplitude per time bucket = how much of that
