@@ -1,7 +1,7 @@
 /**
  * Chunk a long string into ~600 token chunks with ~50 token overlap.
  *
- * Implements T3.4 in TASKS.md. Pure function. No deps.
+ * Pure function. No deps.
  *
  * "Token" here is approximated as 4 chars; close enough for sizing the
  * prompts that downstream code sends to Claude. The actual token count
