@@ -1,5 +1,4 @@
 // Today: generate an episode from the Pile and watch it come together.
-// Implements T8.4.
 
 import { GeneratePanel } from "@/components/episode/GeneratePanel";
 
