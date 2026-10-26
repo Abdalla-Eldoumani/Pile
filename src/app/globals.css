@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Pile: design tokens
-   Source of truth: .agent/DESIGN_SYSTEM.md
+   Pile: design tokens (the source of truth for the palette and type)
    Tailwind v4: CSS-first config via @theme.
    ============================================================ */
 
