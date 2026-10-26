@@ -1,14 +1,12 @@
 /**
  * Script generation. The temporal anchoring foundation.
  *
- * Implements T4.1 in TASKS.md.
- *
  * Critical contract: every non-filler DialogueLine MUST carry a
  * { itemId, chunkId } citation. We enforce this with the Anthropic
  * tool use API: the model returns lines via a structured tool, not
  * via free text. If citations come back referencing chunkIds that
- * do not exist in the input, we drop them and count them; see
- * EDGE_CASES.md "Citation hallucination".
+ * do not exist in the input, we drop them and count them (the model can
+ * hallucinate a citation).
  *
  * This module is server-only. Lives behind a Convex action.
  */
@@ -60,7 +58,7 @@ export async function generateScript(
 
   let { rawLines, usage } = await callModel(client, corpus, false);
 
-  // EDGE_CASES "Empty script": one retry with a firmer nudge before giving up.
+  // Empty script: one retry with a firmer nudge before giving up.
   if (rawLines.length < MIN_LINES) {
     ({ rawLines, usage } = await callModel(client, corpus, true));
   }
