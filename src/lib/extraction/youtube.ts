@@ -1,14 +1,14 @@
 /**
  * Fetch a YouTube transcript via the youtube-transcript npm package.
  *
- * Implements T3.3 in TASKS.md. Runs server-side (Convex action).
+ * Runs server-side (Convex action).
  *
  * Design: this never throws. Transcript availability is unreliable (disabled
  * captions, region locks, rate limits, YouTube markup changes), so any failure
  * resolves to null and the UI falls back to a manual transcript paste. A YouTube
  * item must never crash the add-to-Pile flow.
  *
- * EDGE_CASES.md: no transcript available, member-only / region-locked, shorts.
+ * Edge cases: no transcript available, member-only / region-locked, shorts.
  */
 
 export interface YouTubeExtraction {
