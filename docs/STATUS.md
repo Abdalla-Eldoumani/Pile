@@ -29,21 +29,19 @@ With `npx convex dev` running and `npm run dev` up, sign in and:
 This exercises auth, extraction, chunking, the Claude citation pipeline, and the audio
 pipeline's entry point.
 
-## Phase status
+## Build status
 
-| Phase | Area | State |
-|-------|------|-------|
-| 1 | Foundation: schema, Clerk + Convex auth bridge | Done |
-| 2 | Layout shell, design tokens, self-hosted fonts | Done (light-theme toggle deferred, a planned cut) |
-| 3 | Content extraction (URL, PDF, YouTube, chunking, addItem) | Done |
-| 4 | Script generation with per-line tool-use citations | Done, verified against the live model |
-| 5 | TTS pipeline (synthesis, stitch, waveform, storage) | Done, verified on ElevenLabs Starter |
-| 8 | Pile + Today UI (add, list, generate, view script) | Done (YouTube add is via manual paste) |
-| 6 | Player UI (audio, waveform, source-excerpt panel) | Done |
-| 7 | Reminder feature (voice capture, anchor, .ics) | Done |
-| 9, 10 | Demo prep, deploy | Not started |
-
-The authoritative task-by-task breakdown is in `.agent/TASKS.md` (private; in the zip).
+| Area | State |
+|------|-------|
+| Foundation: schema, Clerk + Convex auth bridge | Done |
+| Layout shell, design tokens, self-hosted fonts | Done (light-theme toggle deferred, a planned cut) |
+| Content extraction (URL, PDF, YouTube, chunking, addItem) | Done |
+| Script generation with per-line tool-use citations | Done, verified against the live model |
+| TTS pipeline (synthesis, stitch, waveform, storage) | Done, verified on ElevenLabs Starter |
+| Pile + Today UI (add, list, generate, view script) | Done (YouTube add is via manual paste) |
+| Player UI (audio, waveform, source-excerpt panel) | Done |
+| Reminder feature (voice capture, anchor, .ics) | Done |
+| Demo prep, deploy | Not started |
 
 ## How it was verified
 
@@ -75,35 +73,29 @@ Client side, in `.env.local`: `NEXT_PUBLIC_CONVEX_URL`,
 
 Server side, in Convex (`npx convex env set ...`, confirm with `npx convex env list`):
 `CLERK_JWT_ISSUER_DOMAIN`, `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`,
-`ELEVENLABS_VEGA_VOICE_ID`, `ELEVENLABS_THEO_VOICE_ID`. `UPSTASH_*` is optional.
+`ELEVENLABS_VEGA_VOICE_ID`, `ELEVENLABS_THEO_VOICE_ID`. `JINA_API_KEY` is optional.
 
 The Clerk JWT template must be named exactly `convex`, or signed-in users look
 unauthenticated to Convex (`docs/SETUP.md` step 3.3).
 
-### 3. Convex MCP (optional, not a blocker)
+### 3. Dev server (already fixed)
 
-The Convex MCP connection failing with `-32000` is an editor-tooling integration, not
-part of the app. `npx convex dev` and the deployed functions work without it. Retry the
-MCP setup later or ignore it; it does not affect the build or the demo.
-
-### 4. Dev server (already fixed)
-
-`npm run dev` was failing on two scaffold issues (a Tailwind package version mismatch and
+`npm run dev` was failing on two setup issues (a Tailwind package version mismatch and
 a Clerk import the installed SDK does not expose). Both are fixed; the server boots.
 
-### 5. Deployment (later)
+### 4. Deployment (later)
 
 Push to Vercel and flip Convex to production near the end, per `docs/SETUP.md` step 8.
 Mirror the client env vars into Vercel; the Convex-side vars stay in Convex.
 
 ## What to build next
 
-1. **Phase 9, demo prep**: seed a demo account with a few good items, generate a clean
+1. **Demo prep**: seed a demo account with a few good items, generate a clean
    pre-baked episode, take screenshots, write the 90-second demo script, record a backup
    video.
-2. **Phase 10, deploy**: push to Vercel, flip Convex to production, mirror env vars.
+2. **Deploy**: push to Vercel, flip Convex to production, mirror env vars.
 
-The full loop (Phases 1 to 8 plus the player and reminder) is built and compiles. Confirm
+The full loop (extraction through the player and reminder) is built and compiles. Confirm
 it in a browser end to end: add two items, generate, open the player, drop a reminder, see
 it on /reminders, and use "play from this moment" to resume at the anchored second.
 
