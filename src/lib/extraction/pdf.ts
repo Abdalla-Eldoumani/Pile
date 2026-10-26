@@ -1,14 +1,12 @@
 /**
  * Client-side PDF text extraction via pdfjs-dist.
  *
- * Implements T3.2 in TASKS.md.
- *
  * IMPORTANT: pdfjs-dist runs in the browser. Import this only from a client
  * component (the AddItemDialog handler). The worker ships from
  * /public/pdfjs/pdf.worker.min.mjs, copied from the installed pdfjs-dist build;
  * keep it in sync with the package version (see convex/../src/lib notes).
  *
- * EDGE_CASES.md: scanned PDFs (no text), encrypted PDFs (throw friendly),
+ * Edge cases: scanned PDFs (no text), encrypted PDFs (throw friendly),
  * >200 pages (refuse), multi-column layout (best-effort).
  */
 
