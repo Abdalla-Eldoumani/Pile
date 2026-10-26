@@ -5,8 +5,7 @@
  * and it returns LLM-friendly Markdown. No auth required for reasonable
  * traffic; with a JINA_API_KEY you get higher rate limits.
  *
- * Implements T3.1 in TASKS.md.
- * EDGE_CASES.md: paywalled articles, JS-rendered SPAs, dead URLs, tracking params.
+ * Edge cases: paywalled articles, JS-rendered SPAs, dead URLs, tracking params.
  */
 
 const JINA_BASE = "https://r.jina.ai/";
