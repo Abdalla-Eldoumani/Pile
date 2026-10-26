@@ -83,7 +83,7 @@ export function EpisodeView({ episodeId }: { episodeId: Id<"episodes"> }) {
 
   // Open the reminder capture: pause, then anchor to the audio second, the
   // current line, and the source chunk. On a filler line, walk back to the most
-  // recent cited line for the chunk (EDGE_CASES "Pause anchor on a filler line").
+  // recent cited line for the chunk (a pause on a filler line has no citation).
   const openReminder = () => {
     if (overlayAnchor) return;
     audioRef.current?.pause();
