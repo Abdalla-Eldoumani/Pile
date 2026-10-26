@@ -1,4 +1,4 @@
-// Implements T7.6 in TASKS.md.
+// Reminders: every reminder the user dropped while listening.
 
 import { RemindersList } from "@/components/reminders/RemindersList";
 
