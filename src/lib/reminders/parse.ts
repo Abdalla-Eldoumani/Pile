@@ -1,11 +1,11 @@
 /**
  * Parse a spoken (or typed) reminder into a scheduled time and a label.
  *
- * Implements T7.2 in TASKS.md. Pure and browser-safe: chrono only, no network.
+ * Pure and browser-safe: chrono only, no network.
  * (The Anthropic Sonnet label polish in src/lib/ai/reminder-parse.ts is
  * server-only and deferred; the cleaned chrono label is what we store.)
  *
- * EDGE_CASES.md: reject a date in the past; reject when no date is found. Never
+ * Edge cases: reject a date in the past; reject when no date is found. Never
  * write a malformed reminder silently: the overlay surfaces these errors.
  */
 
