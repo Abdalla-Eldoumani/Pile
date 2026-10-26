@@ -1,7 +1,7 @@
 /**
  * Stitch per-line audio into a single MP3 with TimingMarks.
  *
- * Implements T5.3 in TASKS.md. Pure function.
+ * Pure function.
  *
  * For MP3 concatenation, simple byte concat works in practice (MP3 is
  * a stream format) for files from the same encoder + bitrate. This is
