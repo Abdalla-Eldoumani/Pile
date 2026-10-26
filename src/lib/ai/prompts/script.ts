@@ -1,8 +1,6 @@
 /**
  * The script-generation prompt and the tool schema that forces per-line citations.
  *
- * Implements T4.2 in TASKS.md.
- *
  * These are the words that produce the conversation the judges hear. Treat
  * with care. Iterate against real items, not synthetic ones.
  */
