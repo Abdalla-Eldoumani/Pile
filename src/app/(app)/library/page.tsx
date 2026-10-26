@@ -1,4 +1,4 @@
-// The Pile: add items and see everything saved. Implements T8.1 + T8.2.
+// The Pile: add items and see everything saved.
 
 import { PileGrid } from "@/components/library/PileGrid";
 
