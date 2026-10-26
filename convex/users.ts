@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 
 /**
  * The `me` query is the canonical health check for the Clerk + Convex
- * bridge. After Phase 1, calling `useQuery(api.users.me)` from a signed-in
+ * bridge. Calling `useQuery(api.users.me)` from a signed-in
  * client must return a user document.
  *
  * The first time a signed-in user calls anything, ensureUser ensures we
